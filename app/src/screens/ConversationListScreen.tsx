@@ -1,7 +1,7 @@
-// Home screen: the list of saved conversations (newest first) with search.
-// - Header "Edit" toggles an edit mode where each row can be renamed (tap) or deleted (🗑).
-// - A floating orange "+" button (bottom-right) starts a new chat.
-// - ⚙ (top-left) opens Settings.
+// "All chats" history screen, reached from the sidebar: every saved conversation
+// (newest first) with search. Header "Edit" toggles an edit mode where each row can be
+// renamed (tap) or deleted (🗑). Tapping a row returns to the Chat screen with that
+// conversation loaded.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -41,7 +41,7 @@ function relativeTime(ts: number): string {
 }
 
 export function ConversationListScreen({ navigation }: Props) {
-  const { conversations, loading, refresh, create, rename, remove } = useConversations();
+  const { conversations, loading, refresh, rename, remove } = useConversations();
   const { settings } = useSettings();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -76,10 +76,11 @@ export function ConversationListScreen({ navigation }: Props) {
     }, [refresh, settings.serverUrl]),
   );
 
-  const newChat = useCallback(async () => {
-    const conv = await create();
-    navigation.navigate('Chat', { conversationId: conv.id, title: conv.title });
-  }, [create, navigation]);
+  // The Chat screen creates the SQLite row lazily on first send — just navigate back to
+  // it in its fresh "new chat" state.
+  const newChat = useCallback(() => {
+    navigation.navigate('Chat', { sessionKey: Date.now() });
+  }, [navigation]);
 
   const promptRename = useCallback(
     (conv: Conversation) =>
@@ -104,21 +105,11 @@ export function ConversationListScreen({ navigation }: Props) {
     [remove],
   );
 
-  // Header: ⚙ Settings (left), Edit/Done toggle (right). Editing is disabled while there
-  // are no chats to act on.
+  // Header: Edit/Done toggle (right). Editing is disabled while there are no chats to
+  // act on. (Settings/Projects moved to the sidebar on the Chat screen.)
   useFocusEffect(
     useCallback(() => {
       navigation.setOptions({
-        headerLeft: () => (
-          <View style={styles.headerLeft}>
-            <TouchableOpacity onPress={() => navigation.navigate('Settings')} hitSlop={10}>
-              <Text style={styles.headerBtn}>⚙</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Projects')} hitSlop={10}>
-              <Text style={styles.headerBtn}>📁</Text>
-            </TouchableOpacity>
-          </View>
-        ),
         headerRight: () =>
           conversations.length > 0 ? (
             <TouchableOpacity onPress={() => setEditing((e) => !e)} hitSlop={10}>

@@ -11,6 +11,8 @@ export type ApiConfig = {
   systemPrompt?: string;
   /** Parent-project context, appended to the system prompt server-side. */
   projectContext?: string;
+  /** Extended thinking: ask the server for a reasoning budget before the answer. */
+  thinking?: boolean;
 };
 
 /** A base64 attachment sent alongside a user turn. */
@@ -62,6 +64,7 @@ export async function streamChat(
       model: config.model || undefined,
       systemPrompt: config.systemPrompt || undefined,
       projectContext: config.projectContext || undefined,
+      thinking: config.thinking || undefined,
     }),
     signal,
   });

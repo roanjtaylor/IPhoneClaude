@@ -125,6 +125,8 @@ export type StreamOptions = {
   systemPrompt?: string;
   /** Parent-project context, appended after the (custom or default) system prompt. */
   projectContext?: string;
+  /** Extended thinking: give the model a reasoning budget before it answers. */
+  thinking?: boolean;
   /** Abort from the caller (e.g. client disconnected). */
   signal?: AbortSignal;
 };
@@ -371,6 +373,9 @@ export async function streamChat(
         maxTurns: 20,
         // Stream partial output so the UI fills in live instead of waiting.
         includePartialMessages: true,
+        // Extended thinking (opt-in from the app's model sheet). Thinking deltas are
+        // NOT forwarded as answer text — only text_delta events reach onDelta below.
+        maxThinkingTokens: options.thinking ? 8192 : undefined,
         cwd,
         abortController: controller,
       },
@@ -385,6 +390,9 @@ export async function streamChat(
           const block = ev.content_block;
           if ((block?.type === 'tool_use' || block?.type === 'server_tool_use') && isWebTool(block.name)) {
             callbacks.onTool?.({ name: block.name, query: block.input?.query });
+          } else if (block?.type === 'thinking') {
+            // Let the app show a "Thinking…" banner while the reasoning block runs.
+            callbacks.onTool?.({ name: 'Thinking' });
           }
         }
       } else if (message.type === 'assistant') {

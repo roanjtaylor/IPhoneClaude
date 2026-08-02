@@ -18,6 +18,8 @@ export type Settings = {
   model: string;
   systemPrompt: string;
   themeMode: ThemeMode;
+  /** Extended thinking: give the model a reasoning budget before it answers. */
+  thinking: boolean;
 };
 
 const KEY = 'claude7.settings.v1';
@@ -29,6 +31,7 @@ export function defaultSettings(): Settings {
     model: DEFAULT_MODEL,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
     themeMode: 'system',
+    thinking: false,
   };
 }
 
@@ -37,6 +40,15 @@ export async function getSettings(): Promise<Settings> {
     const raw = await AsyncStorage.getItem(KEY);
     if (!raw) return defaultSettings();
     const parsed = JSON.parse(raw) as Partial<Settings>;
+    // The HF Space was renamed (iphone-claude → ClaudeSubscription); installs that
+    // persisted the old host would otherwise keep pointing at a dead Space forever.
+    if (parsed.serverUrl?.includes('roanjtaylor-iphone-claude.hf.space')) {
+      parsed.serverUrl = parsed.serverUrl.replace(
+        'roanjtaylor-iphone-claude.hf.space',
+        'roanjtaylor-claudesubscription.hf.space',
+      );
+      void AsyncStorage.setItem(KEY, JSON.stringify(parsed));
+    }
     // Merge over defaults so a newly-added field is always present.
     return { ...defaultSettings(), ...parsed };
   } catch {

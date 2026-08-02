@@ -1,7 +1,7 @@
-// Runtime settings: appearance (light/dark/system), model, system prompt, and — behind an
+// Runtime settings: appearance (light/dark/system), custom instructions, and — behind an
 // explicit unlock — the server URL/secret. The connection fields are locked by default so
 // they can't be changed by accident (a wrong URL/secret silently breaks the app).
-// "Test connection" pings /api/health.
+// "Test connection" pings /api/health. Model + thinking moved to the composer's pill.
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -13,17 +13,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../navigation/types';
 import { useSettings } from '../state/SettingsContext';
 import { useTheme } from '../state/ThemeContext';
 import { defaultSettings, type ThemeMode } from '../storage/settings';
-import { MODEL_OPTIONS } from '../config';
-import { fetchModels, pingHealth, type ModelOption } from '../api';
+import { pingHealth } from '../api';
 import { radius, spacing, type Colors } from '../theme';
-
-const FALLBACK_MODELS: ModelOption[] = MODEL_OPTIONS.map((m) => ({ id: m.value, label: m.label }));
 
 const THEME_OPTIONS: { label: string; value: ThemeMode }[] = [
   { label: 'System', value: 'system' },
@@ -35,59 +29,19 @@ export function SettingsScreen() {
   const { settings, update, reset } = useSettings();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  const [meetCode, setMeetCode] = useState('');
-
-  const joinMeet = () => {
-    const code = meetCode.trim().replace(/^https?:\/\/meet\.google\.com\//i, '');
-    if (!code) {
-      Alert.alert('Enter a meeting code', 'Paste the code or full link from your meeting invite.');
-      return;
-    }
-    navigation.navigate('GoogleMeet', { meetCode: code });
-  };
 
   const [serverUrl, setServerUrl] = useState(settings.serverUrl);
   const [secret, setSecret] = useState(settings.appSharedSecret);
-  const [model, setModel] = useState(settings.model);
   const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
   const [testing, setTesting] = useState(false);
   const [saved, setSaved] = useState(false);
   // Connection fields are read-only until the user explicitly unlocks them.
   const [unlocked, setUnlocked] = useState(false);
 
-  const [models, setModels] = useState<ModelOption[]>(FALLBACK_MODELS);
-  const [modelOpen, setModelOpen] = useState(false);
-
-  const selectedModelLabel = useMemo(
-    () => models.find((m) => m.id === model)?.label ?? model,
-    [models, model],
-  );
-
-  // Pull the live model list so new releases (e.g. Fable) appear without an app update.
-  useEffect(() => {
-    let alive = true;
-    fetchModels({ serverUrl: settings.serverUrl, appSharedSecret: settings.appSharedSecret }).then(
-      (list) => {
-        if (!alive || !list) return;
-        // Keep the current selection visible even if the live list somehow omits it.
-        const merged = list.some((m) => m.id === model)
-          ? list
-          : [...list, { id: model, label: model }];
-        setModels(merged);
-      },
-    );
-    return () => {
-      alive = false;
-    };
-  }, [settings.serverUrl, settings.appSharedSecret, model]);
-
   const save = async () => {
     await update({
       serverUrl: serverUrl.trim().replace(/\/$/, ''),
       appSharedSecret: secret.trim(),
-      model,
       systemPrompt,
     });
     setSaved(true);
@@ -126,7 +80,6 @@ export function SettingsScreen() {
           const d = defaultSettings();
           setServerUrl(d.serverUrl);
           setSecret(d.appSharedSecret);
-          setModel(d.model);
           setSystemPrompt(d.systemPrompt);
           setUnlocked(false);
         },
@@ -136,23 +89,6 @@ export function SettingsScreen() {
   return (
     <SafeAreaView style={styles.screen} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {/* ── Google Meet ── */}
-        <Text style={styles.sectionTitleTop}>Google Meet</Text>
-        <TextInput
-          style={styles.input}
-          value={meetCode}
-          onChangeText={setMeetCode}
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="Meeting code (e.g. abc-defg-hij)"
-          placeholderTextColor={colors.textMuted}
-          returnKeyType="go"
-          onSubmitEditing={joinMeet}
-        />
-        <Pressable style={styles.meetButton} onPress={joinMeet}>
-          <Text style={styles.meetButtonText}>Join Google Meet</Text>
-        </Pressable>
-
         <Text style={styles.label}>Appearance</Text>
         <View style={styles.models}>
           {THEME_OPTIONS.map((t) => (
@@ -169,37 +105,6 @@ export function SettingsScreen() {
             </Pressable>
           ))}
         </View>
-
-        <Text style={styles.label}>Model</Text>
-        <Pressable style={styles.dropdown} onPress={() => setModelOpen((o) => !o)}>
-          <Text style={styles.dropdownText} numberOfLines={1}>
-            {selectedModelLabel}
-          </Text>
-          <Text style={styles.dropdownChevron}>{modelOpen ? '▲' : '▼'}</Text>
-        </Pressable>
-        {modelOpen ? (
-          <View style={styles.dropdownList}>
-            {models.map((m) => (
-              <Pressable
-                key={m.id}
-                style={[styles.dropdownItem, model === m.id && styles.dropdownItemActive]}
-                onPress={() => {
-                  setModel(m.id);
-                  setModelOpen(false);
-                }}
-              >
-                <Text
-                  style={[styles.dropdownItemText, model === m.id && styles.dropdownItemTextActive]}
-                  numberOfLines={1}
-                >
-                  {m.label}
-                </Text>
-                {model === m.id ? <Text style={styles.dropdownCheck}>✓</Text> : null}
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-        <Text style={styles.caption}>The list updates live from your subscription’s models.</Text>
 
         <Text style={styles.label}>Custom instructions (optional)</Text>
         <Text style={styles.caption}>
@@ -272,15 +177,6 @@ const makeStyles = (c: Colors) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: c.bg },
     content: { padding: spacing.lg, gap: spacing.sm },
-    sectionTitleTop: { color: c.textStrong, fontSize: 16, fontWeight: '700', marginBottom: spacing.xs },
-    meetButton: {
-      backgroundColor: '#1a73e8',
-      borderRadius: radius.pill,
-      paddingVertical: spacing.md,
-      alignItems: 'center',
-      marginTop: spacing.xs,
-    },
-    meetButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
     label: { color: c.textMuted, fontSize: 13, marginTop: spacing.md, fontWeight: '600' },
     input: {
       backgroundColor: c.surface,
@@ -305,39 +201,6 @@ const makeStyles = (c: Colors) =>
     modelChipActive: { borderColor: c.accent },
     modelText: { color: c.text, fontSize: 14 },
     modelTextActive: { color: c.accent, fontWeight: '600' },
-    dropdown: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: c.surface,
-      borderRadius: radius.card,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.md,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    dropdownText: { color: c.textStrong, fontSize: 15, flex: 1 },
-    dropdownChevron: { color: c.textMuted, fontSize: 12, marginLeft: spacing.sm },
-    dropdownList: {
-      backgroundColor: c.surface,
-      borderRadius: radius.card,
-      borderWidth: 1,
-      borderColor: c.border,
-      overflow: 'hidden',
-    },
-    dropdownItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: c.border,
-    },
-    dropdownItemActive: { backgroundColor: c.surfaceAlt },
-    dropdownItemText: { color: c.text, fontSize: 15, flex: 1 },
-    dropdownItemTextActive: { color: c.accent, fontWeight: '600' },
-    dropdownCheck: { color: c.accent, fontSize: 15, fontWeight: '700', marginLeft: spacing.sm },
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',

@@ -26,11 +26,12 @@ export const chatRouter = Router();
 //   streams: delta {text} | tool {name,query} | sources {sources} ... then done {}
 //            (or error {error}).
 chatRouter.post('/', async (req, res) => {
-  const { messages, model, systemPrompt, projectContext } = req.body as {
+  const { messages, model, systemPrompt, projectContext, thinking } = req.body as {
     messages?: ChatMessage[];
     model?: string;
     systemPrompt?: string;
     projectContext?: string;
+    thinking?: boolean;
   };
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages array is required' });
@@ -55,7 +56,7 @@ chatRouter.post('/', async (req, res) => {
         onTool: (info) => send('tool', info),
         onSources: (sources) => send('sources', { sources }),
       },
-      { model, systemPrompt, projectContext, signal: controller.signal },
+      { model, systemPrompt, projectContext, thinking: thinking === true, signal: controller.signal },
     );
     send('done', {});
   } catch (err: any) {

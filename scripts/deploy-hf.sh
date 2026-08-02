@@ -10,7 +10,7 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 SRC="$ROOT/server"
 DST="${HF_SPACE_DIR:-$ROOT/../hf-space}"
-SPACE_URL="https://huggingface.co/spaces/roanjtaylor/iphone-claude"
+SPACE_URL="https://huggingface.co/spaces/roanjtaylor/ClaudeSubscription"
 
 if [ ! -d "$DST/.git" ]; then
   echo "[deploy-hf] No HF Space clone found at: $DST" >&2

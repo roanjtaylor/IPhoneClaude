@@ -14,7 +14,7 @@ Config lives in **`app.config.ts`** (`expo.extra`), which reads `SERVER_URL` and
 
 ```sh
 # app/.env
-SERVER_URL=https://roanjtaylor-iphone-claude.hf.space
+SERVER_URL=https://roanjtaylor-claudesubscription.hf.space
 APP_SHARED_SECRET=<must match the server's APP_SHARED_SECRET>
 ```
 

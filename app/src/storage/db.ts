@@ -171,6 +171,12 @@ export async function listConversationsByProject(projectId: string): Promise<Con
   );
 }
 
+/** Set a per-chat model override (null clears it back to the global default). */
+export async function updateConversationModel(id: string, model: string | null): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('UPDATE conversations SET model = ? WHERE id = ?', model, id);
+}
+
 export async function renameConversation(id: string, title: string): Promise<void> {
   const db = await getDb();
   await db.runAsync('UPDATE conversations SET title = ? WHERE id = ?', title, id);

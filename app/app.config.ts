@@ -22,8 +22,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.roanjtaylor.claude7',
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
-      NSMicrophoneUsageDescription:
-        'Claude7 needs microphone access for Google Meet calls.',
     },
   },
   plugins: [
@@ -38,8 +36,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
+        // Coral sampled from the claude.png edge so the splash square blends in.
         image: './assets/splash-icon.png',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#DA7453',
         imageWidth: 200,
       },
     ],
@@ -59,7 +58,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   ],
   extra: {
-    serverUrl: process.env.SERVER_URL ?? 'https://roanjtaylor-iphone-claude.hf.space',
+    serverUrl: process.env.SERVER_URL ?? 'https://roanjtaylor-claudesubscription.hf.space',
     // From EAS secret (production) or .env (local dev). Empty here means "set it in the
     // app's Settings screen at runtime."
     appSharedSecret: process.env.APP_SHARED_SECRET ?? '',

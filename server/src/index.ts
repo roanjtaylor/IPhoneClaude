@@ -7,7 +7,7 @@
 // drops in-flight calls. Plain `tsx` has neither problem. Restart after editing.
 import express, { type NextFunction, type Request, type Response } from 'express';
 import cors from 'cors';
-import { PORT, APP_SHARED_SECRET } from './config.ts';
+import { PORT, APP_SHARED_SECRETS } from './config.ts';
 import { chatRouter } from './routes/chat.ts';
 import { titleRouter } from './routes/title.ts';
 import { modelsRouter } from './routes/models.ts';
@@ -66,11 +66,13 @@ const LANDING_HTML = `<!doctype html>
 app.get('/', (_req, res) => res.type('html').send(LANDING_HTML));
 
 // Shared-secret gate. The server exposes subscription-powered Claude on the public
-// internet, so every non-health request must present the matching x-app-secret. When
-// the secret is unset (local dev) the gate is open for easy `curl` testing.
+// internet, so every non-health request must present a matching x-app-secret. Several
+// client apps can share this server, each with its own secret (comma-separated in the
+// env var). When no secret is set (local dev) the gate is open for easy `curl` testing.
 app.use((req: Request, res: Response, next: NextFunction) => {
-  if (!APP_SHARED_SECRET) return next();
-  if (req.get('x-app-secret') !== APP_SHARED_SECRET) {
+  if (APP_SHARED_SECRETS.length === 0) return next();
+  const presented = req.get('x-app-secret');
+  if (!presented || !APP_SHARED_SECRETS.includes(presented)) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   next();
@@ -90,7 +92,7 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 // Bind on all interfaces (0.0.0.0) so cloud hosts can route to it.
 const server = app.listen(PORT, () => {
   console.log(`[server] listening on http://0.0.0.0:${PORT}`);
-  if (!APP_SHARED_SECRET) {
+  if (APP_SHARED_SECRETS.length === 0) {
     console.warn('[server] APP_SHARED_SECRET is unset — auth gate is OPEN (fine locally, NOT for a public host).');
   }
   if (process.env.ANTHROPIC_API_KEY) {

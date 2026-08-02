@@ -70,8 +70,12 @@ subscription** (no API cost). What's already built:
 - **Google Meet via WebView** — Settings screen has a "Join Google Meet" input (accepts bare code
   or full link) that opens a full-screen `WKWebView` with a desktop Chrome user-agent to bypass
   Google's mobile-browser redirect wall. `sharedCookiesEnabled` shares Safari's existing Google
-  session so no re-login is needed. ⚠️ **Not verified end-to-end on device** — needs a real
-  meeting test to confirm sign-in flow, camera/mic permissions, and video/audio work on iOS 15.
+  session so no re-login is needed. ❌ **Does not work** — Google's join-time block goes deeper
+  than JS injection. We mask all known Chrome-vs-WebKit fingerprinting signals (`window.webkit`,
+  `navigator.vendor`, `navigator.platform`, `navigator.maxTouchPoints`, `ontouchstart`,
+  `performance.memory`, `navigator.plugins`, `window.chrome`) but Meet still returns "You can't
+  join this video call." The block is likely at the WebRTC SDP / network-client level or a
+  server-side policy that no JS patch can reach from a WKWebView.
 
 **Branding / build**
 - Custom **logo + icon** (`assets/icon.svg` → `icon.png` 1024², orange burst on white) + splash,

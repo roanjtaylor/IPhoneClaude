@@ -128,7 +128,7 @@ curl -N -X POST http://localhost:5174/api/chat \
 > The server runs 24/7 as a **Docker Space** on HF's free CPU instance (2 vCPU / 16 GB RAM —
 > ample headroom for the Claude CLI subprocess), **no credit card**. It sleeps after ~48 h of
 > no traffic and wakes on the next request. The public URL is guarded by `APP_SHARED_SECRET`.
-> Live deployment: **`https://roanjtaylor-iphone-claude.hf.space`**.
+> Live deployment: **`https://roanjtaylor-claudesubscription.hf.space`** (Space renamed from `iphone-claude` to `ClaudeSubscription`).
 >
 > Container config lives in `server/Dockerfile` (Node 20, listens on port **7860**) and the
 > HF YAML frontmatter at the top of `server/README.md` (`sdk: docker`, `app_port: 7860`).
@@ -152,8 +152,8 @@ curl -N -X POST http://localhost:5174/api/chat \
 5. **Wait for the Docker build** → green **Running**.
 6. **Test** the live URL:
    ```bash
-   curl https://roanjtaylor-iphone-claude.hf.space/api/health
-   curl -N -X POST https://roanjtaylor-iphone-claude.hf.space/api/chat \
+   curl https://roanjtaylor-claudesubscription.hf.space/api/health
+   curl -N -X POST https://roanjtaylor-claudesubscription.hf.space/api/chat \
      -H 'Content-Type: application/json' -H 'x-app-secret: <secret>' \
      -d '{"messages":[{"role":"user","content":"Say hi."}]}'
    ```
