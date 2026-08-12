@@ -10,18 +10,23 @@ TestFlight.**
 ```
 a_IPhoneClaude/
 ├── plan/        # design & setup record — start at plan/ethos.md
-├── server/      # the Claude "brain": Node + claude-agent-sdk, deployed to Hugging Face Spaces
 ├── app/         # the Expo / React Native chat app → TestFlight
 └── todo.md      # what works today + what's missing (the backlog)
 ```
 
+The Claude "brain" (Node + `claude-agent-sdk`) used to live here as `server/`, but it's now a
+**shared, multi-project resource** — this app is one of its callers, not its owner. Its
+source moved to its own repo: **`../hf-space`** locally, deployed at
+[`huggingface.co/spaces/roanjtaylor/ClaudeSubscription`](https://huggingface.co/spaces/roanjtaylor/ClaudeSubscription).
+See `plan/backend.md` for how this app talks to it.
+
 ## How it fits together
 
 ```
-iPhone 7 (TestFlight)            Hugging Face Space (Docker, 24/7)
+iPhone 7 (TestFlight)            Hugging Face Space (Docker, 24/7) — shared, not app-owned
 ┌──────────────────┐  HTTPS/SSE  ┌──────────────────────────────────┐
-│ app/  Expo chat  │ ──────────► │ server/  Express + claude-agent-  │
-│  (thin client)   │ ◄────────── │ sdk query(), subscription auth    │
+│ app/  Expo chat  │ ──────────► │ ClaudeSubscription server         │
+│  (thin client)   │ ◄────────── │ Express + claude-agent-sdk query()│
 └──────────────────┘             └──────────────────────────────────┘
 ```
 
@@ -34,11 +39,12 @@ cloud and the app is a thin client — that's what makes it work with the laptop
 | --- | --- |
 | [`plan/ethos.md`](plan/ethos.md) | Why this exists + principles + status |
 | [`plan/architecture.md`](plan/architecture.md) | Overall setup & tech, as built |
-| [`plan/backend.md`](plan/backend.md) | The Claude server + Hugging Face hosting runbook |
+| [`plan/backend.md`](plan/backend.md) | How this app talks to the shared Claude server |
 | [`plan/frontend.md`](plan/frontend.md) | The iPhone app + TestFlight build/ship runbook |
 | [`todo.md`](todo.md) | Current capabilities and the backlog (incl. branding) |
 
 ## Disposable by design
 
-Everything runtime lives in `server/` and `app/` (outside `plan/`). To start over, delete
-those two folders — the plan docs and `todo.md` stay intact.
+Everything runtime lives in `app/` (outside `plan/`). To start over, delete that folder — the
+plan docs and `todo.md` stay intact. (The server is a separate, shared resource — see above —
+so it isn't part of "starting over" on this app.)

@@ -50,13 +50,14 @@ always-on Space (rather than the laptop) is what makes "laptop-free" true.
 
 A side endpoint keeps Settings current without an app update: `GET /api/models` returns the live
 Anthropic model list (so new releases appear in the picker), read through the host's OAuth token
-(`server/src/services/oauthApi.ts`).
+(`oauthApi.ts` in the server's own repo — see `backend.md` for where that lives now).
 
 ## Key tech decisions (and constraints behind them)
 
 - **Subscription auth** — `query()` with no `ANTHROPIC_API_KEY`; on the host a long-lived
   `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token`. Zero API cost.
-- **Model** — `claude-opus-4-8` (set in `server/src/config.ts`, overridable via `CLAUDE_MODEL`).
+- **Model** — `claude-opus-4-8` (set in the server's own `config.ts`, overridable via
+  `CLAUDE_MODEL`; see `backend.md` — the server isn't part of this repo any more).
 - **Local data model** — SQLite (`app/src/storage/db.ts`): `conversations` (+ optional
   `projectId` FK), `messages`, and `projects` (goal + injected `contextPrompt`). Schema changes
   ride a `PRAGMA user_version` migration so existing installs upgrade without data loss.
