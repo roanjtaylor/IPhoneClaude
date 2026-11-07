@@ -8,7 +8,7 @@ TestFlight.**
 ## Layout
 
 ```
-a_IPhoneClaude/
+IPhoneClaude/
 ├── plan/        # design & setup record — start at plan/ethos.md
 ├── app/         # the Expo / React Native chat app → TestFlight
 └── todo.md      # what works today + what's missing (the backlog)
