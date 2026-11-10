@@ -16,7 +16,7 @@ IPhoneClaude/
 
 The Claude "brain" (Node + `claude-agent-sdk`) used to live here as `server/`, but it's now a
 **shared, multi-project resource** — this app is one of its callers, not its owner. Its
-source moved to its own repo: **`../hf-space`** locally, deployed at
+source moved to its own repo: **`../z_hf-space`** locally, deployed at
 [`huggingface.co/spaces/roanjtaylor/ClaudeSubscription`](https://huggingface.co/spaces/roanjtaylor/ClaudeSubscription).
 See `plan/backend.md` for how this app talks to it.
 

@@ -4,7 +4,7 @@ The "brain" — a Node/Express service that turns an HTTP chat request into a **
 billed** Claude call, streamed back over SSE — used to live in this project as `server/`. It
 doesn't anymore: it's a **shared, multi-project resource**, not something this app owns.
 
-- **Source of truth:** `../hf-space` (a sibling folder, its own git repo).
+- **Source of truth:** `../z_hf-space` (a sibling folder, its own git repo).
 - **Live deployment:** [`https://roanjtaylor-claudesubscription.hf.space`](https://roanjtaylor-claudesubscription.hf.space)
   — visit `/` for the server's own landing page, which lists every project currently
   authorized to call it and explains its env vars.
@@ -13,7 +13,7 @@ doesn't anymore: it's a **shared, multi-project resource**, not something this a
   app's needs can affect that project too — check the landing page before assuming a change
   is safe.
 - **To change the server itself** (new endpoint, model default, timeout, etc.): edit in
-  `../hf-space`, commit, and `git push` from there. This app has no local copy to keep in
+  `../z_hf-space`, commit, and `git push` from there. This app has no local copy to keep in
   sync and no deploy automation of its own anymore — that lived here as `scripts/deploy-hf.sh`
   + a `pre-push` hook, both removed once the server stabilized and this app stopped needing
   to change it directly.
@@ -53,12 +53,12 @@ curl -N -X POST https://roanjtaylor-claudesubscription.hf.space/api/chat \
   -d '{"messages":[{"role":"user","content":"Say hi."}]}'
 ```
 
-For the full contract, hosting runbook, and every current caller, see `hf-space/README.md` —
+For the full contract, hosting runbook, and every current caller, see `z_hf-space/README.md` —
 that's the canonical doc now, not this file.
 
 ## Image embedding — what works and what doesn't
 
-This part stays here rather than moving to `hf-space`'s docs: it's really about what this
+This part stays here rather than moving to `z_hf-space`'s docs: it's really about what this
 *app* needs Claude to produce and how it renders the result, not a property of the server
 itself (the server just forwards whatever system prompt this app sends).
 
